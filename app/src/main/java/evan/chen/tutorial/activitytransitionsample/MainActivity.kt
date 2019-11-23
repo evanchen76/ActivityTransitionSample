@@ -1,22 +1,15 @@
 package evan.chen.tutorial.activitytransitionsample
 
-import android.app.ActivityOptions
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityOptionsCompat
 import android.support.v4.util.Pair
+import android.support.v7.widget.GridLayoutManager
 import android.view.View
-import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.TextView
-import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
-    private var adapter: GridAdapter? = null
+class MainActivity : AppCompatActivity(), MainAdapter.OnItemClickListener{
 
     lateinit var scenerys: List<Scenery>
 
@@ -26,13 +19,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
 
         scenerys = Scenery.scenerys
 
-        adapter = GridAdapter()
-        grid.adapter = adapter
-        grid.onItemClickListener = this
+        recyclerView.layoutManager = GridLayoutManager(this, 2)
+        val mainAdapter = MainAdapter(this, scenerys)
+        mainAdapter.listener = this
+        recyclerView.adapter = mainAdapter
     }
 
-    override fun onItemClick(adapterView: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        val item = adapterView!!.getItemAtPosition(position) as Scenery
+    override fun onItemClick(view: View, position: Int) {
+        val item = scenerys[position]
 
         val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra(DetailActivity.ARG_SCENERY_ID, item.sceneryId)
@@ -52,38 +46,4 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
         startActivity(intent, activityOptions.toBundle())
     }
 
-    private inner class GridAdapter : BaseAdapter() {
-
-        override fun getCount(): Int {
-            return scenerys.size
-        }
-
-        override fun getItem(position: Int): Scenery {
-            return Scenery.scenerys[position]
-        }
-
-        override fun getItemId(position: Int): Long {
-            return getItem(position).sceneryId.toLong()
-        }
-
-        override fun getView(position: Int, view: View?, viewGroup: ViewGroup): View {
-            var view = view
-            if (view == null) {
-                view = layoutInflater.inflate(R.layout.grid_item, viewGroup, false)
-            }
-
-            val scenery = getItem(position)
-
-            val image = view!!.findViewById(R.id.sceneryImageView) as ImageView
-
-            Picasso.with(image.context).load(scenery.thumbUrl)
-                    .noFade()
-                    .into(image)
-
-            val name = view.findViewById(R.id.sceneryTitle) as TextView
-            name.text = scenery.name
-
-            return view
-        }
-    }
 }
